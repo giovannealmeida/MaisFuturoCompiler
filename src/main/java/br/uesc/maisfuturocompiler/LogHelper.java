@@ -1,10 +1,12 @@
 package br.uesc.maisfuturocompiler;
 
+import static br.uesc.maisfuturocompiler.LogHelper.LogType.REGISTER_RECOVERED;
 import static br.uesc.maisfuturocompiler.LogHelper.LogType.REGISTER_REMOVED;
 import br.uesc.maisfuturocompiler.SheetHandler.ColumnName;
 import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileWriter;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -82,20 +84,50 @@ public class LogHelper {
 
             //Escreve os removidos primeiro
             for (Log log : logs) {
-                if(log.logType == REGISTER_REMOVED){
-                    writer.write
+                if (log.logType == REGISTER_REMOVED) {
+                    writer.write("Foi encontrado \"" + log.foundValue + "\" na coluna " + SheetHandler.getStringColumnNameFromIndex(log.columnNumber) + ".");
+                    writer.newLine();
+                    writer.newLine();
+                    writer.write("Dados do aluno (linha " + (log.lineNumber + 1) + ") ===");
+                    writer.newLine();
+                    writer.write("Nome: " + log.name);
+                    writer.newLine();
+                    writer.write("Matrícula: " + log.id);
+                    writer.newLine();
+                    writer.newLine();
+                    writer.write("Registro removido por não haver resolução.");
+                    writer.newLine();
+                    writer.write("------------------------------------------------");
+                    writer.newLine();
+                    writer.newLine();
                 }
             }
 
-            writer.write("Hello world!");
-        } catch (Exception e) {
-            e.printStackTrace();
-        } finally {
-            try {
-                // Close the writer regardless of what happens...
-                writer.close();
-            } catch (Exception e) {
+            //Escreve os removidos primeiro
+            for (Log log : logs) {
+                if (log.logType == REGISTER_RECOVERED) {
+                    writer.write("Foi encontrado \"" + log.foundValue + "\" na coluna " + SheetHandler.getStringColumnNameFromIndex(log.columnNumber) + ".");
+                    writer.newLine();
+                    writer.newLine();
+                    writer.write("Dados do aluno (linha " + (log.lineNumber + 1) + ") ===");
+                    writer.newLine();
+                    writer.write("Nome: " + log.name);
+                    writer.newLine();
+                    writer.write("Matrícula: " + log.id);
+                    writer.newLine();
+                    writer.newLine();
+                    writer.write("O valor foi substituído por \"" + log.newValue + "\".");
+                    writer.newLine();
+                    writer.write("Registro reparado.");
+                    writer.newLine();
+                    writer.write("------------------------------------------------");
+                    writer.newLine();
+                    writer.newLine();
+                }
             }
+            writer.close();
+        } catch (IOException e) {
+            e.printStackTrace();
         }
     }
 

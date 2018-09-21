@@ -47,7 +47,7 @@ public class Register {
     public XSSFCell getCellByColum(ColumnName column) {
         return cells.get(column.ordinal());
     }
-    
+
     /**
      * Pega uma célula pelo índice da sua coluna.
      *
@@ -157,45 +157,45 @@ public class Register {
                 //Se a coluna for E_ORGAO_EXPEDIDOR_RG, assume o valor como "SSP"
                 if (column == ColumnName.E_ORGAO_EXPEDIDOR_RG.ordinal()) {
                     cell.setCellValue("SSP");
-                    logRecoveredRegister(cell);
+                    logRecoveredRegister(cell, "NULL");
                     //Se a coluna for E_COR_RACA, assume o valor como "6", valor referente a "Não Declarado"
                 } else if (column == ColumnName.E_COR_RACA.ordinal()) {
                     cell.setCellValue("6");
-                    logRecoveredRegister(cell);
+                    logRecoveredRegister(cell, "NULL");
                 } else {
                     //Se não dá pra arrumar, marca esse registro como inválido
-                    logRemovedRegister(cell);
+                    logRemovedRegister(cell, "NULL");
                     return;
                 }
             } else if (cell.getStringCellValue().equals("0")
                     && ((cell.getColumnIndex() == ColumnName.E_TURNO_ATUAL.ordinal())
                     || (cell.getColumnIndex() == ColumnName.E_SEMESTRE_ATUAL.ordinal()))) {
-                logRemovedRegister(cell);
+                logRemovedRegister(cell, "0");
                 return;
             }
         }
     }
 
-    private void logRemovedRegister(XSSFCell cell) {
+    private void logRemovedRegister(XSSFCell cell, String foundValue) {
         LogHelper.getInstance().log(
                 LogHelper.LogType.REGISTER_REMOVED,
-                cells.get(ColumnName.E_MATRICULA.ordinal()).getStringCellValue(),
                 cells.get(ColumnName.E_NOME.ordinal()).getStringCellValue(),
+                cells.get(ColumnName.E_MATRICULA.ordinal()).getStringCellValue(),
                 cell.getRowIndex(),
                 cell.getColumnIndex(),
-                "",
+                foundValue,
                 cell.getStringCellValue());
         isValid = false;
     }
 
-    private void logRecoveredRegister(XSSFCell cell) {
+    private void logRecoveredRegister(XSSFCell cell, String foundValue) {
         LogHelper.getInstance().log(
                 LogHelper.LogType.REGISTER_RECOVERED,
-                cells.get(ColumnName.E_MATRICULA.ordinal()).getStringCellValue(),
                 cells.get(ColumnName.E_NOME.ordinal()).getStringCellValue(),
+                cells.get(ColumnName.E_MATRICULA.ordinal()).getStringCellValue(),
                 cell.getRowIndex(),
                 cell.getColumnIndex(),
-                "NULL",
+                foundValue,
                 cell.getStringCellValue());
     }
 }

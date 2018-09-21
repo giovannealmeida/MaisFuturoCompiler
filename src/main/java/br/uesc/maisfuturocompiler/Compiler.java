@@ -69,10 +69,16 @@ public class Compiler {
      * @param register
      */
     private void checkRegister(Register register) {
-        //Esvazia as células de campos não obrigatórios
+        /* Esvazia as células de campos não obrigatórios 
+        Essa operação deve ser feita antes da validação dos registros pois
+        remove vários campos nulos que não serão usados */
         register.clearNonRequiredCells();
         //Valida as células marcando os registros que não são válidos
         register.validateCells();
+        //Se o registro for válido, faz o resto
+        if (register.isValid()) {
+
+        }
     }
 
     /**
