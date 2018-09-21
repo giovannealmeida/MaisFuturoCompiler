@@ -6,9 +6,13 @@
 package br.uesc.maisfuturocompiler;
 
 import br.uesc.maisfuturocompiler.SheetHandler.ColumnName;
+import java.text.ParseException;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
+import java.util.logging.Level;
+import java.util.logging.Logger;
+import javax.swing.text.MaskFormatter;
 import org.apache.poi.xssf.usermodel.XSSFCell;
 import org.apache.poi.xssf.usermodel.XSSFRow;
 
@@ -169,6 +173,7 @@ public class Register {
                 }
             } else if (cell.getStringCellValue().equals("0")
                     && ((cell.getColumnIndex() == ColumnName.E_TURNO_ATUAL.ordinal())
+                    || (cell.getColumnIndex() == ColumnName.E_DURACAO_CURSO.ordinal())
                     || (cell.getColumnIndex() == ColumnName.E_SEMESTRE_ATUAL.ordinal()))) {
                 logRemovedRegister(cell, "0");
                 return;
@@ -197,5 +202,81 @@ public class Register {
                 cell.getColumnIndex(),
                 foundValue,
                 cell.getStringCellValue());
+    }
+
+    /**
+     * Faz as substituições dos valores de acordo com o layout recebido.
+     */
+    void fixValues() {
+        XSSFCell cell = null;
+        /*
+            Ajusta o turno
+            1 = Matutino
+            2 = Vespertino
+            3 = Noturno
+            4 = Integral/diurno
+         */
+        cell = cells.get(ColumnName.E_TURNO_ATUAL.ordinal());
+        switch (cell.getStringCellValue().toLowerCase()) {
+            case "matutino":
+                cell.setCellValue("1");
+                break;
+            case "vespertino":
+                cell.setCellValue("2");
+                break;
+            case "noturno":
+                cell.setCellValue("3");
+                break;
+            case "integral":
+                cell.setCellValue("4");
+                break;
+            case "diurno":
+                cell.setCellValue("4");
+                break;
+        }
+        //Ajusta E_INGRESSO_ANO_SEMESTRE aplicando a máscara "9999.9"
+        cell = cells.get(ColumnName.E_INGRESSO_ANO_SEMESTRE.ordinal());
+        cell.setCellValue(String.format("%s.%s", cell.getStringCellValue().substring(0, 4),cell.getStringCellValue().substring(4)));        
+
+        /*
+            Ajusta E_COR_RACA
+            1 - Branca
+            2 - Negra
+            3 - Amerela (é "AmErela" mesmo)
+            4 - Parda
+            5 - Indígena
+            6 - Não Declarado (possíveis nulos já foram tratados)
+         */
+        cell = cells.get(ColumnName.E_COR_RACA.ordinal());
+        switch (cell.getStringCellValue().toLowerCase()) {
+            case "branca":
+                cell.setCellValue("1");
+                break;
+            case "negra":
+                cell.setCellValue("2");
+                break;
+            case "amerela":
+                cell.setCellValue("3");
+                break;
+            case "amarela": //CASO UM DIA ARRUMEM
+                cell.setCellValue("3");
+                break;
+            case "parda":
+                cell.setCellValue("4");
+                break;
+            case "indígena":
+                cell.setCellValue("5");
+                break;
+            default:
+                cell.setCellValue("6");
+        }
+        
+        // Ajuste de E_UNIVERSIDADE
+        cell = cells.get(ColumnName.E_UNIVERSIDADE.ordinal());
+        cell.setCellValue("4"); //Valor que representa a UESC
+        
+        // Ajuste de E_CAMPUS
+        cell = cells.get(ColumnName.E_CAMPUS.ordinal());
+        cell.setCellValue("Prof. Soane Nazaré de Andrade");
     }
 }

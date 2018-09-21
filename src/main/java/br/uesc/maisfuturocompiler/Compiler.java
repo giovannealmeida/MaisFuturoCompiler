@@ -21,29 +21,41 @@ import org.apache.poi.xssf.usermodel.XSSFWorkbook;
  */
 public class Compiler {
 
+    private final int HEADER_NUM_ROWS = 4;
     private List<Register> registers;
     private String dir;
 
     void run(String file) {
         try {
             dir = file;
-            //Abre o arquivo
-            InputStream ExcelFileToRead = new FileInputStream(file);
+            XSSFWorkbook wb = new XSSFWorkbook(new FileInputStream(file)); //Abre/descompila a planilha
+            XSSFSheet sheet = wb.getSheetAt(0); //Pega a primeira pasta
             //Prepara o arquivo para processamento
-            prepareFile(ExcelFileToRead);
+            prepareFile(sheet);
             //Processa o arquivo
-            processFile(ExcelFileToRead);
+            processFile(sheet);
         } catch (IOException ex) {
             Logger.getLogger(Main.class.getName()).log(Level.SEVERE, null, ex);
         }
     }
+    
+    /**
+     * ToDo: Fazer o método Prepara o arquivo para processamento. Operações: -
+     * Remove as linhas de cabeçalho
+     *
+     * @param ExcelFileToRead
+     */
+    private void prepareFile(XSSFSheet sheet) {
+        for (int i = 0; i < HEADER_NUM_ROWS; i++) {
+            sheet.removeRow(sheet.getRow(i));
+        }
+    }
 
-    private void processFile(InputStream ExcelFileToRead) throws IOException {
-        XSSFWorkbook wb = new XSSFWorkbook(ExcelFileToRead); //Abre/descompila a planilha
-        XSSFSheet sheet = wb.getSheetAt(0); //Pega a primeira pasta
+    private void processFile(XSSFSheet sheet)throws IOException {
         XSSFRow row; //Objeto que armazena as linhas de registro
         Iterator rows = sheet.rowIterator(); //Obtém o iterador das linhas de registro
         registers = new ArrayList<>();
+        
         while (rows.hasNext()) { //Percorre todas as linhas
             row = (XSSFRow) rows.next(); //Pega a linha atual
             //Cria um registro
@@ -77,61 +89,39 @@ public class Compiler {
         register.validateCells();
         //Se o registro for válido, faz o resto
         if (register.isValid()) {
-
+            register.fixValues();
         }
-    }
-
-    /**
-     * ToDo: Fazer o método Prepara o arquio para processamento. Operações: -
-     * Remove as linhas de cabeçalho
-     *
-     * @param ExcelFileToRead
-     */
-    private void prepareFile(InputStream ExcelFileToRead) {
-
     }
 
     private void writeNewDocument() {
         String excelFileName = "C:\\Users\\gamessias\\Desktop\\teste_arrumado.xlsx";//name of excel file
 
-        String sheetName = "Pasta1";//name of sheet
+        String sheetName = "Dados Mais Futuro";//name of sheet
 
         XSSFWorkbook wb = new XSSFWorkbook();
         XSSFSheet sheet = wb.createSheet(sheetName);
 
-        for (int line = 0; line < registers.size(); line++) {
-            Register register = registers.get(line);
+        int fileLine = 0;
+        for (int registerCount = 0; registerCount < registers.size(); registerCount++) {
+            Register register = registers.get(registerCount);
 
             if (register.isValid()) {
-                XSSFRow row = sheet.createRow(line);
+                XSSFRow row = sheet.createRow(fileLine++);
                 for (int column = 0; column < register.getAllCells().size(); column++) {
                     XSSFCell cell = row.createCell(column);
                     cell.setCellValue(register.getCellByIndex(column).getStringCellValue());
                 }
             }
         }
-        //iterating r number of rows
-//        for (int r = 0; r < 5; r++) {
-//            XSSFRow row = sheet.createRow(r);
-//
-//            //iterating c number of columns
-//            for (int c = 0; c < 5; c++) {
-//                XSSFCell cell = row.createCell(c);
-//
-//                cell.setCellValue("Cell " + r + " " + c);
-//            }
-//        }
 
         FileOutputStream fileOut = null;
         try {
             fileOut = new FileOutputStream(excelFileName);
-
-            //write this workbook to an Outputstream.
             wb.write(fileOut);
             fileOut.flush();
             fileOut.close();
         } catch (FileNotFoundException ex) {
-            Logger.getLogger(Compiler.class.getName()).log(Level.SEVERE, null, ex);
+            System.out.println("O arquivo está aberto ou falta permissão de escrita!");
         } catch (IOException ex) {
             Logger.getLogger(Compiler.class.getName()).log(Level.SEVERE, null, ex);
         }
