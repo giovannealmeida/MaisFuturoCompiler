@@ -2,12 +2,15 @@ package br.uesc.maisfuturocompiler;
 
 import static br.uesc.maisfuturocompiler.LogHelper.LogType.REGISTER_RECOVERED;
 import static br.uesc.maisfuturocompiler.LogHelper.LogType.REGISTER_REMOVED;
+import java.awt.Desktop;
 import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import javax.swing.JTextArea;
 
 /**
@@ -47,6 +50,8 @@ import javax.swing.JTextArea;
 public class LogHelper {
 
     private JTextArea txtLog;
+    private boolean showRemoved, showRestored;
+    private File logFile;
 
     public static enum LogType {
         REGISTER_REMOVED,
@@ -75,6 +80,14 @@ public class LogHelper {
 
     public List<Log> getLogs() {
         return logs;
+    }
+
+    public void setShowRemoved(boolean showRemoved) {
+        this.showRemoved = showRemoved;
+    }
+
+    public void setShowRestored(boolean showRestored) {
+        this.showRestored = showRestored;
     }
 
     public void log(LogType logType, String name, String id, int lineNumber, int columnNumber, String foundValue, String newValue) {
@@ -112,53 +125,68 @@ public class LogHelper {
         txtLog.setCaretPosition(txtLog.getDocument().getLength());
     }
 
-    public void writeLog(String file) throws IOException {
-        BufferedWriter writer = null;
-
-        File logFile = new File(file);
-        writer = new BufferedWriter(new FileWriter(logFile.getParent() + "\\log.txt"));
+    public void writeLog(String absolutePath) throws IOException {
+        BufferedWriter writer = new BufferedWriter(new FileWriter(absolutePath + "\\log.txt"));
 
         //Escreve os removidos primeiro
-        for (Log log : logs) {
-            if (log.logType == REGISTER_REMOVED) {
-                writer.write("Foi encontrado \"" + log.foundValue + "\" na coluna " + SheetHandler.getStringColumnNameFromIndex(log.columnNumber) + ".");
-                writer.newLine();
-                writer.newLine();
-                writer.write("Dados do aluno (linha " + (log.lineNumber + 1) + ") ===");
-                writer.newLine();
-                writer.write("Nome: " + log.name);
-                writer.newLine();
-                writer.write("Matrícula: " + log.id);
-                writer.newLine();
-                writer.newLine();
-                writer.write("Registro removido por não haver resolução.");
-                writer.newLine();
-                writer.write("------------------------------------------------");
-                writer.newLine();
-                writer.newLine();
+        if (showRemoved) {
+            writer.write("============================");
+            writer.newLine();
+            writer.write("=== ARQUIVOS REMOVIDOS ===");
+            writer.newLine();
+            writer.write("============================");
+            writer.newLine();
+            for (Log log : logs) {
+                if (log.logType == REGISTER_REMOVED) {
+                    writer.write("Foi encontrado \"" + log.foundValue + "\" na coluna " + SheetHandler.getStringColumnNameFromIndex(log.columnNumber) + ".");
+                    writer.newLine();
+                    writer.newLine();
+                    writer.write("Dados do aluno (linha " + (log.lineNumber + 1) + ") ===");
+                    writer.newLine();
+                    writer.write("Nome: " + log.name);
+                    writer.newLine();
+                    writer.write("Matrícula: " + log.id);
+                    writer.newLine();
+                    writer.newLine();
+                    writer.write("Registro removido por não haver resolução.");
+                    writer.newLine();
+                    writer.write("------------------------------------------------");
+                    writer.newLine();
+                    writer.newLine();
+                }
             }
         }
 
-        //Escreve os removidos primeiro
-        for (Log log : logs) {
-            if (log.logType == REGISTER_RECOVERED) {
-                writer.write("Foi encontrado \"" + log.foundValue + "\" na coluna " + SheetHandler.getStringColumnNameFromIndex(log.columnNumber) + ".");
-                writer.newLine();
-                writer.newLine();
-                writer.write("Dados do aluno (linha " + (log.lineNumber + 1) + ") ===");
-                writer.newLine();
-                writer.write("Nome: " + log.name);
-                writer.newLine();
-                writer.write("Matrícula: " + log.id);
-                writer.newLine();
-                writer.newLine();
-                writer.write("O valor foi substituído por \"" + log.newValue + "\".");
-                writer.newLine();
-                writer.write("Registro reparado.");
-                writer.newLine();
-                writer.write("------------------------------------------------");
-                writer.newLine();
-                writer.newLine();
+        //Escreve os recuperados depois
+        if (showRestored) {
+            writer.newLine();
+            writer.newLine();
+            writer.write("============================");
+            writer.newLine();
+            writer.write("=== ARQUIVOS RECUPERADOS ===");
+            writer.newLine();
+            writer.write("============================");
+            writer.newLine();
+            for (Log log : logs) {
+                if (log.logType == REGISTER_RECOVERED) {
+                    writer.write("Foi encontrado \"" + log.foundValue + "\" na coluna " + SheetHandler.getStringColumnNameFromIndex(log.columnNumber) + ".");
+                    writer.newLine();
+                    writer.newLine();
+                    writer.write("Dados do aluno (linha " + (log.lineNumber + 1) + ") ===");
+                    writer.newLine();
+                    writer.write("Nome: " + log.name);
+                    writer.newLine();
+                    writer.write("Matrícula: " + log.id);
+                    writer.newLine();
+                    writer.newLine();
+                    writer.write("O valor foi substituído por \"" + log.newValue + "\".");
+                    writer.newLine();
+                    writer.write("Registro reparado.");
+                    writer.newLine();
+                    writer.write("------------------------------------------------");
+                    writer.newLine();
+                    writer.newLine();
+                }
             }
         }
         writer.close();
@@ -178,6 +206,19 @@ public class LogHelper {
             this.columnNumber = columnNumber;
             this.foundValue = foundValue;
             this.newValue = newValue;
+        }
+    }
+
+    public void openLogFileExternally() {
+        try {
+            if (Desktop.isDesktopSupported()) {
+                Desktop.getDesktop().edit(logFile);
+
+            } else {
+                // dunno, up to you to handle this
+            }
+        } catch (IOException ex) {
+            Logger.getLogger(LogHelper.class.getName()).log(Level.SEVERE, null, ex);
         }
     }
 }

@@ -54,6 +54,7 @@
  */
 package br.uesc.maisfuturocompiler;
 
+import java.awt.Desktop;
 import java.io.File;
 import javax.swing.JFileChooser;
 import javax.swing.JOptionPane;
@@ -65,9 +66,8 @@ import javax.swing.filechooser.FileSystemView;
  * @author Giovanne Almeida 19/09/2018
  */
 public class MainFrame extends javax.swing.JFrame {
-
-    private String inputDirectory = "";
-    private String outputDirectory = "";
+    
+    private String parentPath = "";
 
     /**
      * Creates new form MainFrame
@@ -85,8 +85,6 @@ public class MainFrame extends javax.swing.JFrame {
     // <editor-fold defaultstate="collapsed" desc="Generated Code">//GEN-BEGIN:initComponents
     private void initComponents() {
 
-        jScrollPane1 = new javax.swing.JScrollPane();
-        jTextPane1 = new javax.swing.JTextPane();
         jPanel1 = new javax.swing.JPanel();
         txtInput = new javax.swing.JTextField();
         btExploreInput = new javax.swing.JButton();
@@ -95,12 +93,14 @@ public class MainFrame extends javax.swing.JFrame {
         txtOutput = new javax.swing.JTextField();
         btCompile = new javax.swing.JButton();
         progressBar = new javax.swing.JProgressBar();
+        cbShowRemoved = new javax.swing.JCheckBox();
+        jLabel2 = new javax.swing.JLabel();
+        cbShowRestored = new javax.swing.JCheckBox();
+        writingProgressBar = new javax.swing.JProgressBar();
+        jSeparator1 = new javax.swing.JSeparator();
         jLabel3 = new javax.swing.JLabel();
         jScrollPane2 = new javax.swing.JScrollPane();
         txtLog = new javax.swing.JTextArea();
-        jSeparator1 = new javax.swing.JSeparator();
-
-        jScrollPane1.setViewportView(jTextPane1);
 
         setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
         setTitle("Mais Futuro Compiler");
@@ -115,9 +115,9 @@ public class MainFrame extends javax.swing.JFrame {
             }
         });
 
-        jLabel1.setText("Arquivo de origem");
+        jLabel1.setText("Arquivo de origem:");
 
-        jLabel4.setText("Diretório de destino");
+        jLabel4.setText("Diretório de destino:");
 
         txtOutput.setEditable(false);
 
@@ -127,6 +127,18 @@ public class MainFrame extends javax.swing.JFrame {
                 btCompileActionPerformed(evt);
             }
         });
+
+        cbShowRemoved.setSelected(true);
+        cbShowRemoved.setText("Exibir registros removidos");
+        cbShowRemoved.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                cbShowRemovedActionPerformed(evt);
+            }
+        });
+
+        jLabel2.setText("Opções do arquivo de log:");
+
+        cbShowRestored.setText("Exibir registros restaurados");
 
         jLabel3.setText("Log de eventos");
 
@@ -141,25 +153,30 @@ public class MainFrame extends javax.swing.JFrame {
         jPanel1.setLayout(jPanel1Layout);
         jPanel1Layout.setHorizontalGroup(
             jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addComponent(progressBar, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-            .addComponent(jSeparator1, javax.swing.GroupLayout.Alignment.TRAILING)
-            .addComponent(jScrollPane2)
             .addGroup(jPanel1Layout.createSequentialGroup()
                 .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING)
                     .addGroup(jPanel1Layout.createSequentialGroup()
                         .addComponent(jLabel4)
-                        .addGap(0, 303, Short.MAX_VALUE))
+                        .addGap(0, 299, Short.MAX_VALUE))
                     .addComponent(txtInput))
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addComponent(btExploreInput))
-            .addGroup(jPanel1Layout.createSequentialGroup()
-                .addComponent(txtOutput)
-                .addGap(91, 91, 91))
+            .addComponent(txtOutput)
+            .addComponent(progressBar, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+            .addComponent(writingProgressBar, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+            .addComponent(jSeparator1)
+            .addComponent(jScrollPane2)
             .addGroup(jPanel1Layout.createSequentialGroup()
                 .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                    .addComponent(jLabel1)
+                    .addComponent(jLabel2)
+                    .addGroup(jPanel1Layout.createSequentialGroup()
+                        .addGap(10, 10, 10)
+                        .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                            .addComponent(cbShowRemoved)
+                            .addComponent(cbShowRestored)))
                     .addComponent(btCompile)
-                    .addComponent(jLabel3)
-                    .addComponent(jLabel1))
+                    .addComponent(jLabel3))
                 .addGap(0, 0, Short.MAX_VALUE))
         );
         jPanel1Layout.setVerticalGroup(
@@ -174,12 +191,20 @@ public class MainFrame extends javax.swing.JFrame {
                 .addComponent(jLabel4)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addComponent(txtOutput, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, 84, Short.MAX_VALUE)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
+                .addComponent(jLabel2)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
+                .addComponent(cbShowRemoved)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addComponent(cbShowRestored)
+                .addGap(18, 18, 18)
                 .addComponent(btCompile)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addComponent(progressBar, javax.swing.GroupLayout.PREFERRED_SIZE, 30, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addGap(18, 18, 18)
-                .addComponent(jSeparator1, javax.swing.GroupLayout.PREFERRED_SIZE, 10, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addComponent(writingProgressBar, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
+                .addComponent(jSeparator1, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addComponent(jLabel3)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
@@ -209,7 +234,7 @@ public class MainFrame extends javax.swing.JFrame {
     }// </editor-fold>//GEN-END:initComponents
 
     private void btExploreInputActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btExploreInputActionPerformed
-        outputDirectory = "";
+        txtOutput.setText("");
         //Cria a janela de seleção de arquivo
         JFileChooser jfc = new JFileChooser(FileSystemView.getFileSystemView().getHomeDirectory());
         FileNameExtensionFilter filter = new FileNameExtensionFilter("Arquivos Excel 2007", "xlsx");
@@ -218,13 +243,13 @@ public class MainFrame extends javax.swing.JFrame {
         //Abre a janela de seleção de arquivo
         if (jfc.showOpenDialog(null) == JFileChooser.APPROVE_OPTION) {
             File selectedFile = jfc.getSelectedFile();
-            inputDirectory = selectedFile.getAbsolutePath();
+            //Pega o endereço do arquivo
+            String inputDirectory = selectedFile.getAbsolutePath();
+            //Salva o diretório pai para saber onde salvar o log futuramente
+            parentPath = selectedFile.getParent();
             txtInput.setText(inputDirectory);
             //Pega o caminho até o arquivo selecionado para criar o caminho de destino
-            String[] folders = selectedFile.getParent().split("\\\\");
-            for (String folder : folders) {
-                outputDirectory = outputDirectory.concat(folder + "\\");
-            }
+            String outputDirectory = selectedFile.getParent()+"\\";
             //Aplica a extensão do arquivo ao arquivo de destino
             int i = selectedFile.getName().lastIndexOf('.');
             if (i > 0) {
@@ -236,17 +261,26 @@ public class MainFrame extends javax.swing.JFrame {
     }//GEN-LAST:event_btExploreInputActionPerformed
 
     private void btCompileActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btCompileActionPerformed
-        //Inicializa a área de log
+        //Inicializa o LogHelper
         LogHelper.getInstance().setTxtLog(txtLog);
+        LogHelper.getInstance().setShowRemoved(cbShowRemoved.isSelected());
+        LogHelper.getInstance().setShowRestored(cbShowRestored.isSelected());
+        
+        //Desabilita botões durante o processamento
         btCompile.setEnabled(false);
         btExploreInput.setEnabled(false);
         //Começa a compilação
-        new Compiler().run(inputDirectory, outputDirectory, progressBar, new OnCompileListener() {
+        new Compiler().run(parentPath, txtInput.getText(), txtOutput.getText(), progressBar, writingProgressBar, new OnCompileListener() {
             @Override
             public void onFinished(int status) {
                 if (status == OnCompileListener.COMPILE_SUCCESS) {
                     LogHelper.getInstance().writeInConsole("Compilação concluída com êxito.");
-                    JOptionPane.showMessageDialog(MainFrame.this, "Um arquivo de log foi gerado no local do arquivo de origem.", "Compilação concluída", JOptionPane.INFORMATION_MESSAGE);
+
+                    String[] options = {"Ok", "Ver log"};
+                    if (JOptionPane.showOptionDialog(null, "Um arquivo de log foi gerado no local do arquivo de origem.",
+                            "Compilação concluída com êxito",
+                            JOptionPane.DEFAULT_OPTION, JOptionPane.INFORMATION_MESSAGE, null, options, options[0]) == 1) {
+                    }
                 } else {
                     LogHelper.getInstance().writeInConsole("Falha na compilação.");
                     JOptionPane.showMessageDialog(MainFrame.this, "Ocorreu uma falha durante a compilação", "A compilação falhou", JOptionPane.INFORMATION_MESSAGE);
@@ -264,6 +298,10 @@ public class MainFrame extends javax.swing.JFrame {
             }
         });
     }//GEN-LAST:event_btCompileActionPerformed
+
+    private void cbShowRemovedActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_cbShowRemovedActionPerformed
+        // TODO add your handling code here:
+    }//GEN-LAST:event_cbShowRemovedActionPerformed
 
     /**
      * @param args the command line arguments
@@ -303,17 +341,19 @@ public class MainFrame extends javax.swing.JFrame {
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JButton btCompile;
     private javax.swing.JButton btExploreInput;
+    private javax.swing.JCheckBox cbShowRemoved;
+    private javax.swing.JCheckBox cbShowRestored;
     private javax.swing.JLabel jLabel1;
+    private javax.swing.JLabel jLabel2;
     private javax.swing.JLabel jLabel3;
     private javax.swing.JLabel jLabel4;
     private javax.swing.JPanel jPanel1;
-    private javax.swing.JScrollPane jScrollPane1;
     private javax.swing.JScrollPane jScrollPane2;
     private javax.swing.JSeparator jSeparator1;
-    private javax.swing.JTextPane jTextPane1;
     private javax.swing.JProgressBar progressBar;
     private javax.swing.JTextField txtInput;
     private javax.swing.JTextArea txtLog;
     private javax.swing.JTextField txtOutput;
+    private javax.swing.JProgressBar writingProgressBar;
     // End of variables declaration//GEN-END:variables
 }

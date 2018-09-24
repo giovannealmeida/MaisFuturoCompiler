@@ -24,20 +24,23 @@ import org.apache.poi.xssf.usermodel.XSSFWorkbook;
  */
 public class Compiler {
 
-    private JProgressBar progressBar;
+    private JProgressBar progressBar, writingProgressBar;
     private final int HEADER_NUM_ROWS = 4;
     private int SAVE_COST = 0; //Custo (para barra de progresso) do salvamento do arquivo arrumado calculado após análise do arquivo de entrada
     private List<Register> registers;
-    private String outputDirectory;
+    private String parentPath = "";
     private OnCompileListener listener;
     private FileOutputStream fileOut = null;
 
-    void run(String inputDirectory, String outputDirectory, JProgressBar progressBar, OnCompileListener listener) {
-        this.outputDirectory = outputDirectory;
+    void run(String parentPath, String inputDirectory, String outputDirectory, JProgressBar progressBar, JProgressBar writingProgressBar, OnCompileListener listener) {
+        this.parentPath = parentPath;
         this.listener = listener;
         this.progressBar = progressBar;
         this.progressBar.setMinimum(0);
         this.progressBar.setStringPainted(true);
+        this.writingProgressBar = writingProgressBar;
+        this.writingProgressBar.setMinimum(0);
+        this.writingProgressBar.setStringPainted(true);
         new Thread(new Runnable() {
             public void run() {
                 //Cria arquivo de escrita
@@ -58,7 +61,7 @@ public class Compiler {
                     prepareFile(sheet);
                     //Inicializa a barra de progresso com o número de registros
                     /* O valor máximo da barra de progresso é composto por:
-                        - Quantidade de linhas a ser processada (excluindo as HEADER_NUM_ROWS primeiras que são do cabeçalho)
+                        - Quantidade de linhas a ser processada, menos as HEADER_NUM_ROWS primeiras que são do cabeçalho
                         - Tempo de geração do arquivo arrumado (2% do valor da quantidade de a ser linhas processada)
                      */
                     int max = sheet.getLastRowNum() + 1 - HEADER_NUM_ROWS; //+1 é preciso pois getLastRowNum() é 0 based
@@ -109,7 +112,7 @@ public class Compiler {
 
         try {
             //Escreve o log
-            LogHelper.getInstance().writeLog(outputDirectory);
+            LogHelper.getInstance().writeLog(parentPath);
         } catch (IOException ex) {
             listener.onFileNotFound("Falha ao gerar log", "O arquivo de log está aberto ou falta permissão de escrita.");
         }
@@ -124,6 +127,11 @@ public class Compiler {
         progressBar.setMaximum(0);
         progressBar.setMinimum(0);
         progressBar.setStringPainted(false);
+        
+        writingProgressBar.setValue(0);
+        writingProgressBar.setMaximum(0);
+        writingProgressBar.setMinimum(0);
+        writingProgressBar.setStringPainted(false);
     }
 
     /**
@@ -150,17 +158,18 @@ public class Compiler {
     }
 
     private void writeNewDocument() {
-        LogHelper.getInstance().writeInConsole("Gerando arquivo arrumado...\n");
+        LogHelper.getInstance().writeInConsole("Gravando arquivo arrumado...\n");
 
-        String sheetName = "Dados Mais Futuro";//name of sheet
+        String sheetName = "Dados Mais Futuro";
 
         XSSFWorkbook wb = new XSSFWorkbook();
         XSSFSheet sheet = wb.createSheet(sheetName);
 
+        writingProgressBar.setMaximum(registers.size());
         int fileLine = 0;
         for (int registerCount = 0; registerCount < registers.size(); registerCount++) {
             Register register = registers.get(registerCount);
-
+            writingProgressBar.setValue(writingProgressBar.getValue() + 1);
             if (register.isValid()) {
                 XSSFRow row = sheet.createRow(fileLine++);
                 for (int column = 0; column < register.getAllCells().size(); column++) {
