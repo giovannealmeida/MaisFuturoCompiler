@@ -85,6 +85,8 @@ public class MainFrame extends javax.swing.JFrame {
     // <editor-fold defaultstate="collapsed" desc="Generated Code">//GEN-BEGIN:initComponents
     private void initComponents() {
 
+        jScrollPane1 = new javax.swing.JScrollPane();
+        jTextPane1 = new javax.swing.JTextPane();
         jPanel1 = new javax.swing.JPanel();
         txtInput = new javax.swing.JTextField();
         btExploreInput = new javax.swing.JButton();
@@ -97,6 +99,8 @@ public class MainFrame extends javax.swing.JFrame {
         jScrollPane2 = new javax.swing.JScrollPane();
         txtLog = new javax.swing.JTextArea();
         jSeparator1 = new javax.swing.JSeparator();
+
+        jScrollPane1.setViewportView(jTextPane1);
 
         setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
         setTitle("Mais Futuro Compiler");
@@ -237,13 +241,26 @@ public class MainFrame extends javax.swing.JFrame {
         btCompile.setEnabled(false);
         btExploreInput.setEnabled(false);
         //Começa a compilação
-        new Compiler().run(inputDirectory, progressBar, new CompileListener() {
+        new Compiler().run(inputDirectory, outputDirectory, progressBar, new OnCompileListener() {
             @Override
-            public void onFinished() {
-                LogHelper.getInstance().writeInConsole("Compilação concluída!");
-                JOptionPane.showMessageDialog(MainFrame.this,"Compilação concluída!");
+            public void onFinished(int status) {
+                if (status == OnCompileListener.COMPILE_SUCCESS) {
+                    LogHelper.getInstance().writeInConsole("Compilação concluída com êxito.");
+                    JOptionPane.showMessageDialog(MainFrame.this, "Um arquivo de log foi gerado no local do arquivo de origem.", "Compilação concluída", JOptionPane.INFORMATION_MESSAGE);
+                } else {
+                    LogHelper.getInstance().writeInConsole("Falha na compilação.");
+                    JOptionPane.showMessageDialog(MainFrame.this, "Ocorreu uma falha durante a compilação", "A compilação falhou", JOptionPane.INFORMATION_MESSAGE);
+                }
                 btCompile.setEnabled(true);
                 btExploreInput.setEnabled(true);
+            }
+
+            @Override
+            public void onFileNotFound(String title, String message) {
+                JOptionPane.showMessageDialog(MainFrame.this,
+                        message,
+                        title,
+                        JOptionPane.ERROR_MESSAGE);
             }
         });
     }//GEN-LAST:event_btCompileActionPerformed
@@ -290,8 +307,10 @@ public class MainFrame extends javax.swing.JFrame {
     private javax.swing.JLabel jLabel3;
     private javax.swing.JLabel jLabel4;
     private javax.swing.JPanel jPanel1;
+    private javax.swing.JScrollPane jScrollPane1;
     private javax.swing.JScrollPane jScrollPane2;
     private javax.swing.JSeparator jSeparator1;
+    private javax.swing.JTextPane jTextPane1;
     private javax.swing.JProgressBar progressBar;
     private javax.swing.JTextField txtInput;
     private javax.swing.JTextArea txtLog;

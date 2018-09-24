@@ -9,6 +9,10 @@ package br.uesc.maisfuturocompiler;
  *
  * @author gamessias
  */
-public interface CompileListener {
-    public void onFinished();
+public interface OnCompileListener {
+    public static final int COMPILE_SUCCESS = 0;
+    public static final int COMPILE_ERROR = 1;
+    
+    public void onFinished(int status);
+    public void onFileNotFound(String title, String message);
 }

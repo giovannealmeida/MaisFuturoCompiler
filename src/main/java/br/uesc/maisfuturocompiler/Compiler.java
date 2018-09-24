@@ -28,20 +28,31 @@ public class Compiler {
     private final int HEADER_NUM_ROWS = 4;
     private int SAVE_COST = 0; //Custo (para barra de progresso) do salvamento do arquivo arrumado calculado após análise do arquivo de entrada
     private List<Register> registers;
-    private String dir;
-    private CompileListener listener;
+    private String outputDirectory;
+    private OnCompileListener listener;
+    private FileOutputStream fileOut = null;
 
-    void run(String file, JProgressBar progressBar, CompileListener listener) {
+    void run(String inputDirectory, String outputDirectory, JProgressBar progressBar, OnCompileListener listener) {
+        this.outputDirectory = outputDirectory;
         this.listener = listener;
         this.progressBar = progressBar;
         this.progressBar.setMinimum(0);
         this.progressBar.setStringPainted(true);
         new Thread(new Runnable() {
             public void run() {
+                //Cria arquivo de escrita
                 try {
-                    dir = file;
+                    fileOut = new FileOutputStream(outputDirectory);
+                } catch (FileNotFoundException ex) {
+                    resetProgressBar();
+                    listener.onFileNotFound("Falha ao gerar arquivo", "O arquivo de destino está aberto ou falta permissão de escrita.");
+                    listener.onFinished(OnCompileListener.COMPILE_ERROR);
+                    return;
+                }
+                try {
+
                     LogHelper.getInstance().writeInConsole("Abrindo arquivo...\n");
-                    XSSFWorkbook wb = new XSSFWorkbook(new FileInputStream(file)); //Abre/descompila a planilha
+                    XSSFWorkbook wb = new XSSFWorkbook(new FileInputStream(inputDirectory)); //Abre/descompila a planilha
                     XSSFSheet sheet = wb.getSheetAt(0); //Pega a primeira pasta
                     //Prepara o arquivo para processamento
                     prepareFile(sheet);
@@ -95,10 +106,24 @@ public class Compiler {
         }
         //Escreve registros válidos na nova planilha
         writeNewDocument();
-        //Escreve o log
-        LogHelper.getInstance().writeLog("C:\\Users\\gamessias\\Desktop\\teste_log.txt");
+
+        try {
+            //Escreve o log
+            LogHelper.getInstance().writeLog(outputDirectory);
+        } catch (IOException ex) {
+            listener.onFileNotFound("Falha ao gerar log", "O arquivo de log está aberto ou falta permissão de escrita.");
+        }
+
         progressBar.setValue(progressBar.getValue() + SAVE_COST);
-        listener.onFinished();
+        listener.onFinished(OnCompileListener.COMPILE_SUCCESS);
+        resetProgressBar();
+    }
+
+    private void resetProgressBar() {
+        progressBar.setValue(0);
+        progressBar.setMaximum(0);
+        progressBar.setMinimum(0);
+        progressBar.setStringPainted(false);
     }
 
     /**
@@ -126,7 +151,6 @@ public class Compiler {
 
     private void writeNewDocument() {
         LogHelper.getInstance().writeInConsole("Gerando arquivo arrumado...\n");
-        String excelFileName = "C:\\Users\\gamessias\\Desktop\\teste_arrumado.xlsx";//name of excel file
 
         String sheetName = "Dados Mais Futuro";//name of sheet
 
@@ -146,14 +170,12 @@ public class Compiler {
             }
         }
 
-        FileOutputStream fileOut = null;
         try {
-            fileOut = new FileOutputStream(excelFileName);
             wb.write(fileOut);
             fileOut.flush();
             fileOut.close();
         } catch (FileNotFoundException ex) {
-            System.out.println("O arquivo está aberto ou falta permissão de escrita!");
+            LogHelper.getInstance().writeInConsole("O arquivo de destino está aberto ou falta permissão de escrita!");
         } catch (IOException ex) {
             Logger.getLogger(Compiler.class.getName()).log(Level.SEVERE, null, ex);
         }
