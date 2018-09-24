@@ -9,6 +9,7 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
+import javax.swing.JTextArea;
 
 /**
  *
@@ -46,6 +47,8 @@ import java.util.List;
  */
 public class LogHelper {
 
+    private JTextArea txtLog;
+
     public static enum LogType {
         REGISTER_REMOVED,
         REGISTER_RECOVERED
@@ -62,6 +65,10 @@ public class LogHelper {
         return logHelper;
     }
 
+    public void setTxtLog(JTextArea txtLog) {
+        this.txtLog = txtLog;
+    }
+
     private LogHelper() {
         this.logs = new ArrayList<>();
     }
@@ -71,9 +78,37 @@ public class LogHelper {
     }
 
     public void log(LogType logType, String name, String id, int lineNumber, int columnNumber, String foundValue, String newValue) {
-
         Log log = new Log(logType, name, id, lineNumber, columnNumber, foundValue, newValue);
+        writeInConsole(log);
         logs.add(log);
+    }
+    
+    private void writeInConsole(Log log) {
+        StringBuilder sb = new StringBuilder();
+        
+        sb.append("Foi encontrado \"").append(log.foundValue).append("\" na coluna ").append(SheetHandler.getStringColumnNameFromIndex(log.columnNumber)).append(".\n\n");
+        sb.append("Dados do aluno (linha ").append(log.lineNumber).append(1).append(") ===\n");
+        sb.append("Nome: ").append(log.name).append("\n");
+        sb.append("Matrícula: ").append(log.id).append("\n\n");
+         if (log.logType == REGISTER_REMOVED){
+             sb.append("Registro removido por não haver resolução.\n");
+         } else {
+             sb.append("O valor foi substituído por \"").append(log.newValue).append("\".\n");
+             sb.append("Registro reparado.\n");             
+         }
+        sb.append("------------------------------------------------\n\n");
+
+        txtLog.append(sb.toString());
+        txtLog.setCaretPosition(txtLog.getDocument().getLength());
+    }
+    
+    /**
+     * Escreve o texto passado por parâmetro no log de eventos.
+     * @param message Texto a ser escrito.
+     */
+    public void writeInConsole(String message){
+        txtLog.append(message);  
+        txtLog.setCaretPosition(txtLog.getDocument().getLength());
     }
 
     public void writeLog(String file) {

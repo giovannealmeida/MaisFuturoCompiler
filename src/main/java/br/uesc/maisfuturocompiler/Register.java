@@ -166,11 +166,20 @@ public class Register {
                 } else if (column == ColumnName.E_COR_RACA.ordinal()) {
                     cell.setCellValue("6");
                     logRecoveredRegister(cell, "NULL");
-                } else {
-                    //Se não dá pra arrumar, marca esse registro como inválido
+                    
+                    //E_LOGRADOURO, E_NUMERO e E_BAIRRO são sensíveis mas não são obrigatórios e são enviados como texto.
+                    //Assim, a plataforma do Mais Futuro aceita campos com "NULL".
+                    //A fim de manter uma padronização, os "NULL", quando ocorrem, são substituídos por "".
+                } else if (column == ColumnName.E_LOGRADOURO.ordinal()
+                        || column == ColumnName.E_NUMERO.ordinal()
+                        || column == ColumnName.E_BAIRRO.ordinal()) {
+                    cell.setCellValue("");
+                    logRecoveredRegister(cell, "NULL");
+                } else { //Se não dá pra arrumar, marca esse registro como inválido
                     logRemovedRegister(cell, "NULL");
-                    return;
                 }
+                return;
+
             } else if (cell.getStringCellValue().equals("0")
                     && ((cell.getColumnIndex() == ColumnName.E_TURNO_ATUAL.ordinal())
                     || (cell.getColumnIndex() == ColumnName.E_DURACAO_CURSO.ordinal())
@@ -236,7 +245,7 @@ public class Register {
         }
         //Ajusta E_INGRESSO_ANO_SEMESTRE aplicando a máscara "9999.9"
         cell = cells.get(ColumnName.E_INGRESSO_ANO_SEMESTRE.ordinal());
-        cell.setCellValue(String.format("%s.%s", cell.getStringCellValue().substring(0, 4),cell.getStringCellValue().substring(4)));        
+        cell.setCellValue(String.format("%s.%s", cell.getStringCellValue().substring(0, 4), cell.getStringCellValue().substring(4)));
 
         /*
             Ajusta E_COR_RACA
@@ -270,11 +279,11 @@ public class Register {
             default:
                 cell.setCellValue("6");
         }
-        
+
         // Ajuste de E_UNIVERSIDADE
         cell = cells.get(ColumnName.E_UNIVERSIDADE.ordinal());
         cell.setCellValue("4"); //Valor que representa a UESC
-        
+
         // Ajuste de E_CAMPUS
         cell = cells.get(ColumnName.E_CAMPUS.ordinal());
         cell.setCellValue("Prof. Soane Nazaré de Andrade");
