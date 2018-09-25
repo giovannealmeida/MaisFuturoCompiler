@@ -59,10 +59,10 @@ public class SheetHandler {
         E_QTD_DISC_ABAN
     }
     /**
-     * Retorna o nome da coluna no formato {@link String}.
+     * Retorna o nome da coluna no formato {@link String} a partir do tipo da coluna.
      * 
      * @param column Nome da coluna ({@link ColumnName}).
-     * @return 
+     * @return Nome da coluna no formato texto ({@link String}) 
      */
     public static String getStringColumnNameFromColumnName(ColumnName column){
         switch(column){
@@ -167,10 +167,10 @@ public class SheetHandler {
     }
     
     /**
-     * Retorna o nome da coluna no formato {@link String}.
+     * Retorna o nome da coluna no formato {@link String} a partir do índice da coluna.
      * 
      * @param index Índice da coluna
-     * @return 
+     * @return Nome da coluna no formato texto ({@link String}) 
      */
     public static String getStringColumnNameFromIndex(int index){
         switch(index){

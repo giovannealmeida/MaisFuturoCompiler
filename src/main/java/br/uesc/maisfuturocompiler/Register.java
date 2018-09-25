@@ -21,7 +21,7 @@ import org.apache.poi.xssf.usermodel.XSSFRow;
  * @author Giovanne Almeida 20/09/2018
  */
 /**
- * Cria uma lista de {@link Cell} a partir de {@link XSSFRow} <b>row</b>.
+ * Cria uma lista de {@link XSSFCell} a partir de {@link XSSFRow} <b>row</b>.
  *
  */
 public class Register {

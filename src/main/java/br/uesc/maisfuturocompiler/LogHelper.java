@@ -17,36 +17,6 @@ import javax.swing.JTextArea;
  *
  * @author Giovanne Almeida 20/08/2018
  */
-/**
- * ###################################### # Mensagem de valor inválido (null)
- * ###################################### Foi econtrado "NULL" na coluna
- * <coluna>.
- *
- * Nome: <nome>
- * Matrícula: <matricula>
- *
- * Registro removido por não haver resolução
- *
- * ###################################### # Mensagem de valor inválido (0 onde
- * não é permitido) ###################################### Foi econtrado "0" na
- * coluna <coluna>.
- *
- * Nome: <nome>
- * Matrícula: <matricula>
- *
- * Registro removido por não haver resolução
- *
- * ###################################### # Mensagem de valor inválido resolvido
- * ###################################### Foi econtrado <valor> na coluna
- * <coluna>.
- *
- * Nome: <nome>
- * Matrícula: <matricula>
- *
- * O valor foi substituído por <valor_substituido>. Registro reparado.
- *
- * @author gamessias
- */
 public class LogHelper {
 
     private JTextArea txtLog;
