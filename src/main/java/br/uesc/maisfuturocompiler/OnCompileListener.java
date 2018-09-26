@@ -14,5 +14,5 @@ public interface OnCompileListener {
     public static final int COMPILE_ERROR = 1;
     
     public void onFinished(int status);
-    public void onFileNotFound(String title, String message);
+    public void onAborted(String title, String message);
 }

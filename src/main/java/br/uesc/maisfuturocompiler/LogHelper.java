@@ -20,16 +20,15 @@ import javax.swing.JTextArea;
 public class LogHelper {
 
     private JTextArea txtLog;
-    private boolean showRemoved, showRestored;
+    private boolean showRemoved, showRestored, showLineNumber;
     private File logFile;
-
+    private List<Log> logs;
+    private static LogHelper logHelper;
+    
     public static enum LogType {
         REGISTER_REMOVED,
         REGISTER_RECOVERED
     }
-
-    private List<Log> logs;
-    private static LogHelper logHelper;
 
     public static LogHelper getInstance() {
         if (logHelper == null) {
@@ -60,6 +59,10 @@ public class LogHelper {
         this.showRestored = showRestored;
     }
 
+    public void setShowLineNumber(boolean showLineNumber) {
+        this.showLineNumber = showLineNumber;
+    }
+
     public void log(LogType logType, String name, String id, int lineNumber, int columnNumber, String foundValue, String newValue) {
         Log log = new Log(logType, name, id, lineNumber, columnNumber, foundValue, newValue);
         writeInConsole(log);
@@ -70,7 +73,11 @@ public class LogHelper {
         StringBuilder sb = new StringBuilder();
 
         sb.append("Foi encontrado \"").append(log.foundValue).append("\" na coluna ").append(SheetHandler.getStringColumnNameFromIndex(log.columnNumber)).append(".\n\n");
-        sb.append("Dados do aluno (linha ").append(log.lineNumber + 1).append(") ===\n");
+        sb.append("Dados do aluno");
+        if (showLineNumber) {
+            sb.append(" (linha ").append(log.lineNumber + 1).append(")");
+        }
+        sb.append(" ===\n");
         sb.append("Nome: ").append(log.name).append("\n");
         sb.append("Matrícula: ").append(log.id).append("\n\n");
         if (log.logType == REGISTER_REMOVED) {
@@ -96,7 +103,8 @@ public class LogHelper {
     }
 
     public void writeLog(String absolutePath) throws IOException {
-        BufferedWriter writer = new BufferedWriter(new FileWriter(absolutePath + "\\log.txt"));
+        logFile = new File(absolutePath + "\\log.txt");
+        BufferedWriter writer = new BufferedWriter(new FileWriter(logFile));
 
         //Escreve os removidos primeiro
         if (showRemoved) {
@@ -111,7 +119,11 @@ public class LogHelper {
                     writer.write("Foi encontrado \"" + log.foundValue + "\" na coluna " + SheetHandler.getStringColumnNameFromIndex(log.columnNumber) + ".");
                     writer.newLine();
                     writer.newLine();
-                    writer.write("Dados do aluno (linha " + (log.lineNumber + 1) + ") ===");
+                    writer.write("Dados do aluno");
+                    if (showLineNumber) {
+                        writer.write(" (linha " + (log.lineNumber + 1) + ")");
+                    }
+                    writer.write(" ===");
                     writer.newLine();
                     writer.write("Nome: " + log.name);
                     writer.newLine();
@@ -142,7 +154,11 @@ public class LogHelper {
                     writer.write("Foi encontrado \"" + log.foundValue + "\" na coluna " + SheetHandler.getStringColumnNameFromIndex(log.columnNumber) + ".");
                     writer.newLine();
                     writer.newLine();
-                    writer.write("Dados do aluno (linha " + (log.lineNumber + 1) + ") ===");
+                    writer.write("Dados do aluno");
+                    if (showLineNumber) {
+                        writer.write(" (linha " + (log.lineNumber + 1) + ")");
+                    }
+                    writer.write(" ===");
                     writer.newLine();
                     writer.write("Nome: " + log.name);
                     writer.newLine();
@@ -183,12 +199,13 @@ public class LogHelper {
         try {
             if (Desktop.isDesktopSupported()) {
                 Desktop.getDesktop().edit(logFile);
-
-            } else {
-                // dunno, up to you to handle this
+            } else if (logFile != null) {
+                LogHelper.getInstance().writeInConsole("Não foi possível abrir o arquivo de log.");
+                LogHelper.getInstance().writeInConsole("O arquivo encontra-se em: " + logFile.getAbsolutePath());
             }
         } catch (IOException ex) {
             Logger.getLogger(LogHelper.class.getName()).log(Level.SEVERE, null, ex);
+            LogHelper.getInstance().writeInConsole("Não foi possível abrir o arquivo de log.");
         }
     }
 }

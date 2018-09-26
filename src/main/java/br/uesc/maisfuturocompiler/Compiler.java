@@ -26,6 +26,7 @@ public class Compiler {
 
     private JProgressBar progressBar, writingProgressBar;
     private final int HEADER_NUM_ROWS = 4;
+    private final int DEFAULT_NUM_COLUMNS = 48;
     private int SAVE_COST = 0; //Custo (para barra de progresso) do salvamento do arquivo arrumado calculado após análise do arquivo de entrada
     private List<Register> registers;
     private String parentPath = "";
@@ -43,20 +44,35 @@ public class Compiler {
         this.writingProgressBar.setStringPainted(true);
         new Thread(new Runnable() {
             public void run() {
-                //Cria arquivo de escrita
-                try {
-                    fileOut = new FileOutputStream(outputDirectory);
-                } catch (FileNotFoundException ex) {
-                    resetProgressBar();
-                    listener.onFileNotFound("Falha ao gerar arquivo", "O arquivo de destino está aberto ou falta permissão de escrita.");
-                    listener.onFinished(OnCompileListener.COMPILE_ERROR);
-                    return;
-                }
-                try {
 
-                    LogHelper.getInstance().writeInConsole("Abrindo arquivo...\n");
+                try {
+                    LogHelper.getInstance().writeInConsole("Preparando arquivos...\n");
                     XSSFWorkbook wb = new XSSFWorkbook(new FileInputStream(inputDirectory)); //Abre/descompila a planilha
                     XSSFSheet sheet = wb.getSheetAt(0); //Pega a primeira pasta
+                    /*Verifica a quantidade de colunas das linhas de cabeçalhos e da linha de títulos. 
+                    Se a quantidade das colunas das linhas de cabeçalho for diferente de 1 e 
+                    a quantidade das colunas da linha de título for diferente de DEFAULT_NUM_COLUMNS, 
+                    o arquivo aberto não é uma planílha válida.*/
+                    if (sheet.getRow(0).getPhysicalNumberOfCells() != 1
+                            || sheet.getRow(1).getPhysicalNumberOfCells() != 1
+                            || sheet.getRow(2).getPhysicalNumberOfCells() != 1
+                            || sheet.getRow(3).getPhysicalNumberOfCells() != DEFAULT_NUM_COLUMNS) {
+                        LogHelper.getInstance().writeInConsole("O arquivo de origem está mal formatado.");
+                        listener.onAborted("Falha ao processar arquivo", "O arquivo de origem está mal formatado.");
+                        return;
+                    }
+
+                    //Cria arquivo de escrita/destino
+                    try {
+                        fileOut = new FileOutputStream(outputDirectory);
+                    } catch (FileNotFoundException ex) {
+                        Logger.getLogger(Compiler.class.getName()).log(Level.SEVERE, null, ex);
+                        resetProgressBar();
+                        LogHelper.getInstance().writeInConsole("O arquivo de destino está aberto ou falta permissão de escrita.");
+                        listener.onAborted("Falha ao gerar arquivo", "O arquivo de destino está aberto ou falta permissão de escrita.");
+                        return;
+                    }
+
                     //Prepara o arquivo para processamento
                     prepareFile(sheet);
                     //Inicializa a barra de progresso com o número de registros
@@ -74,6 +90,7 @@ public class Compiler {
 
                 } catch (IOException ex) {
                     Logger.getLogger(Compiler.class.getName()).log(Level.SEVERE, null, ex);
+                    listener.onFinished(OnCompileListener.COMPILE_ERROR);
                 }
             }
         }).start();
@@ -114,7 +131,10 @@ public class Compiler {
             //Escreve o log
             LogHelper.getInstance().writeLog(parentPath);
         } catch (IOException ex) {
-            listener.onFileNotFound("Falha ao gerar log", "O arquivo de log está aberto ou falta permissão de escrita.");
+            Logger.getLogger(Compiler.class.getName()).log(Level.SEVERE, null, ex);
+            LogHelper.getInstance().writeInConsole("O arquivo de log está aberto ou falta permissão de escrita.");
+            listener.onAborted("Falha ao gerar log", "O arquivo de log está aberto ou falta permissão de escrita.");
+            return;
         }
 
         progressBar.setValue(progressBar.getValue() + SAVE_COST);
@@ -127,7 +147,7 @@ public class Compiler {
         progressBar.setMaximum(0);
         progressBar.setMinimum(0);
         progressBar.setStringPainted(false);
-        
+
         writingProgressBar.setValue(0);
         writingProgressBar.setMaximum(0);
         writingProgressBar.setMinimum(0);
@@ -184,9 +204,13 @@ public class Compiler {
             fileOut.flush();
             fileOut.close();
         } catch (FileNotFoundException ex) {
+            Logger.getLogger(Compiler.class.getName()).log(Level.SEVERE, null, ex);
             LogHelper.getInstance().writeInConsole("O arquivo de destino está aberto ou falta permissão de escrita!");
+            listener.onAborted("Falha ao gerar arquivo", "O arquivo de destino está aberto ou falta permissão de escrita.");
         } catch (IOException ex) {
             Logger.getLogger(Compiler.class.getName()).log(Level.SEVERE, null, ex);
+            LogHelper.getInstance().writeInConsole("Falha ao compilar arquivo!");
+            listener.onFinished(OnCompileListener.COMPILE_ERROR);
         }
     }
 }

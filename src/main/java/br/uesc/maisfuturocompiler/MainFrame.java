@@ -12,7 +12,7 @@
  * exigidos no arquivo de layout, porém os dados estão em outro formato.
  *
  * Após os ajustes dos dados, a planilha resultante deve ser submetido no site
- * <http://maisfuturo.educacao.ba.gov.br/auth/>.
+ * [http://maisfuturo.educacao.ba.gov.br/auth/].
  *
  * ==== Regras aplicadas pelo programa (em sequência, separadas em grupos) ====
  *
@@ -54,7 +54,6 @@
  */
 package br.uesc.maisfuturocompiler;
 
-import java.awt.Desktop;
 import java.io.File;
 import javax.swing.JFileChooser;
 import javax.swing.JOptionPane;
@@ -66,7 +65,7 @@ import javax.swing.filechooser.FileSystemView;
  * @author Giovanne Almeida 19/09/2018
  */
 public class MainFrame extends javax.swing.JFrame {
-    
+
     private String parentPath = "";
 
     /**
@@ -101,6 +100,7 @@ public class MainFrame extends javax.swing.JFrame {
         jLabel3 = new javax.swing.JLabel();
         jScrollPane2 = new javax.swing.JScrollPane();
         txtLog = new javax.swing.JTextArea();
+        cbShowLineNumber = new javax.swing.JCheckBox();
 
         setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
         setTitle("Mais Futuro Compiler");
@@ -143,11 +143,18 @@ public class MainFrame extends javax.swing.JFrame {
         jLabel3.setText("Log de eventos");
 
         txtLog.setEditable(false);
-        txtLog.setBackground(javax.swing.UIManager.getDefaults().getColor("Button.light"));
         txtLog.setColumns(20);
         txtLog.setFont(new java.awt.Font("Monospaced", 0, 12)); // NOI18N
         txtLog.setRows(5);
         jScrollPane2.setViewportView(txtLog);
+
+        cbShowLineNumber.setText("Exibir número das linhas");
+        cbShowLineNumber.setActionCommand("Exibir número das linhas");
+        cbShowLineNumber.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                cbShowLineNumberActionPerformed(evt);
+            }
+        });
 
         javax.swing.GroupLayout jPanel1Layout = new javax.swing.GroupLayout(jPanel1);
         jPanel1.setLayout(jPanel1Layout);
@@ -174,7 +181,8 @@ public class MainFrame extends javax.swing.JFrame {
                         .addGap(10, 10, 10)
                         .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                             .addComponent(cbShowRemoved)
-                            .addComponent(cbShowRestored)))
+                            .addComponent(cbShowRestored)
+                            .addComponent(cbShowLineNumber)))
                     .addComponent(btCompile)
                     .addComponent(jLabel3))
                 .addGap(0, 0, Short.MAX_VALUE))
@@ -197,7 +205,9 @@ public class MainFrame extends javax.swing.JFrame {
                 .addComponent(cbShowRemoved)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addComponent(cbShowRestored)
-                .addGap(18, 18, 18)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addComponent(cbShowLineNumber)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
                 .addComponent(btCompile)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addComponent(progressBar, javax.swing.GroupLayout.PREFERRED_SIZE, 30, javax.swing.GroupLayout.PREFERRED_SIZE)
@@ -226,8 +236,8 @@ public class MainFrame extends javax.swing.JFrame {
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(layout.createSequentialGroup()
                 .addContainerGap()
-                .addComponent(jPanel1, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
+                .addComponent(jPanel1, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                .addContainerGap())
         );
 
         pack();
@@ -247,25 +257,38 @@ public class MainFrame extends javax.swing.JFrame {
             String inputDirectory = selectedFile.getAbsolutePath();
             //Salva o diretório pai para saber onde salvar o log futuramente
             parentPath = selectedFile.getParent();
-            txtInput.setText(inputDirectory);
             //Pega o caminho até o arquivo selecionado para criar o caminho de destino
-            String outputDirectory = selectedFile.getParent()+"\\";
+            String outputDirectory = selectedFile.getParent() + "\\";
             //Aplica a extensão do arquivo ao arquivo de destino
             int i = selectedFile.getName().lastIndexOf('.');
             if (i > 0) {
-                outputDirectory = outputDirectory.concat(selectedFile.getName().substring(0, i) + "_arrumado" + selectedFile.getName().substring(i));
+                String extension = selectedFile.getName().substring(i);
+                if (!extension.equals(".xlsx")) {
+                    JOptionPane.showMessageDialog(MainFrame.this, "Não é possível converter aquivos " + extension + ". Somente são aceitos arquivos .xlsx.", "Formato inválido", JOptionPane.WARNING_MESSAGE);
+                    return;
+                }
+                outputDirectory = outputDirectory.concat(selectedFile.getName().substring(0, i) + "_arrumado" + extension);
+            } else {
+                JOptionPane.showMessageDialog(MainFrame.this, "O arqivo selecionado não é válido para compilação.", "Arquivo inválido", JOptionPane.WARNING_MESSAGE);
+                return;
             }
 
+            txtInput.setText(inputDirectory);
             txtOutput.setText(outputDirectory);
         }
     }//GEN-LAST:event_btExploreInputActionPerformed
 
     private void btCompileActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btCompileActionPerformed
+        if (txtInput.getText().isEmpty()) {
+            JOptionPane.showMessageDialog(MainFrame.this, "Escolha o arquivo de origem", "Atenção", JOptionPane.WARNING_MESSAGE);
+            return;
+        }
         //Inicializa o LogHelper
         LogHelper.getInstance().setTxtLog(txtLog);
         LogHelper.getInstance().setShowRemoved(cbShowRemoved.isSelected());
         LogHelper.getInstance().setShowRestored(cbShowRestored.isSelected());
-        
+        LogHelper.getInstance().setShowLineNumber(cbShowLineNumber.isSelected());
+
         //Desabilita botões durante o processamento
         btCompile.setEnabled(false);
         btExploreInput.setEnabled(false);
@@ -280,6 +303,7 @@ public class MainFrame extends javax.swing.JFrame {
                     if (JOptionPane.showOptionDialog(null, "Um arquivo de log foi gerado no local do arquivo de origem.",
                             "Compilação concluída com êxito",
                             JOptionPane.DEFAULT_OPTION, JOptionPane.INFORMATION_MESSAGE, null, options, options[0]) == 1) {
+                        LogHelper.getInstance().openLogFileExternally();
                     }
                 } else {
                     LogHelper.getInstance().writeInConsole("Falha na compilação.");
@@ -290,11 +314,14 @@ public class MainFrame extends javax.swing.JFrame {
             }
 
             @Override
-            public void onFileNotFound(String title, String message) {
+            public void onAborted(String title, String message) {
                 JOptionPane.showMessageDialog(MainFrame.this,
                         message,
                         title,
                         JOptionPane.ERROR_MESSAGE);
+                
+                btCompile.setEnabled(true);
+                btExploreInput.setEnabled(true);
             }
         });
     }//GEN-LAST:event_btCompileActionPerformed
@@ -302,6 +329,10 @@ public class MainFrame extends javax.swing.JFrame {
     private void cbShowRemovedActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_cbShowRemovedActionPerformed
         // TODO add your handling code here:
     }//GEN-LAST:event_cbShowRemovedActionPerformed
+
+    private void cbShowLineNumberActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_cbShowLineNumberActionPerformed
+        // TODO add your handling code here:
+    }//GEN-LAST:event_cbShowLineNumberActionPerformed
 
     /**
      * @param args the command line arguments
@@ -331,16 +362,15 @@ public class MainFrame extends javax.swing.JFrame {
         //</editor-fold>
 
         /* Create and display the form */
-        java.awt.EventQueue.invokeLater(new Runnable() {
-            public void run() {
-                new MainFrame().setVisible(true);
-            }
+        java.awt.EventQueue.invokeLater(() -> {
+            new MainFrame().setVisible(true);
         });
     }
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JButton btCompile;
     private javax.swing.JButton btExploreInput;
+    private javax.swing.JCheckBox cbShowLineNumber;
     private javax.swing.JCheckBox cbShowRemoved;
     private javax.swing.JCheckBox cbShowRestored;
     private javax.swing.JLabel jLabel1;
